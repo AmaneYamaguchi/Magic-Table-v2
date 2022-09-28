@@ -1,7 +1,21 @@
-﻿public static class GlobalVariables { // グローバル変数っぽいものをここにまとめる
+﻿/// <summary>
+/// なるべくシングルトンでどうにかしたいやつ
+/// </summary>
+public static class GlobalVariables
+{
+    /// <summary>
+    /// テーブルの形状
+    /// </summary>
+    /*
+    public enum TableShape
+    {
+        triangle = 3,
+        square = 4,
+        pentagon = 5,
+    };
+    */
 
-    public enum scenes : int { square, pentagon, triangle};//めんどかったらあとでただのintに変える
-    public static scenes sceneNo = scenes.square;// シーン番号
-	public static float Gain = 4f/3f;
+    //public static TableShape Shape = TableShape.square;// シーン番号
+	//public static float Gain = 4f/3f;
 
 }

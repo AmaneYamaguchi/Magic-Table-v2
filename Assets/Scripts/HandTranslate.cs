@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class HandTranslate : MonoBehaviour {
-
-	public const float WID = 0.7f;  //テーブルの一辺の長さ
+public class HandTranslate : MonoBehaviour
+{
+	//public static float TableManager.Instance.TableWidth = 0.7f;  //テーブルの一辺の長さ
 	
 	private float re_r;  //現実でのテーブル中心からトラッカーまでの距離
 	private float re_theta;  //現実でのテーブル中心から下に下ろした直線と，トラッカーまでの直線のなす角（反時計回り正）
@@ -22,8 +22,8 @@ public class HandTranslate : MonoBehaviour {
 	private float angle_tmp = 0f;  //領域の境に入った時変換式の回転角度を保持
 
 	private Vector3 square = new Vector3 (0f, 0f, 0f);  //四角形のテーブルの中心
-	private Vector3 triangle = new Vector3 (0f, 0f, WID / 2f * (1f / Mathf.Sqrt (3f) - 1f));  //三角形のテーブルの中心
-	private Vector3 pentagon = new Vector3 (0f, 0f, WID / 2f * (Mathf.Tan (54f * Mathf.Deg2Rad) - 1f));  //五角形のテーブルの中心
+	private Vector3 triangle = new Vector3 (0f, 0f, TableManager.Instance.TableWidth / 2f * (1f / Mathf.Sqrt (3f) - 1f));  //三角形のテーブルの中心
+	private Vector3 pentagon = new Vector3 (0f, 0f, TableManager.Instance.TableWidth / 2f * (Mathf.Tan (54f * Mathf.Deg2Rad) - 1f));  //五角形のテーブルの中心
 	private float center;  //テーブルの中心
 
 	private int pre_re_area = 0;  //一つ前の現実でのトラッカーの位置
@@ -44,10 +44,10 @@ public class HandTranslate : MonoBehaviour {
 	}
 
 	void Update () {
-		if (ChangeTable.scene != 0) {
+		if (TableManager.Instance.CurrentShape != TableManager.TableShape.Square) {
 			trans_con ();  //テーブルを変形させた時の位置によって変換したトラッカーの座標，姿勢を格納
 
-			if (ChangeTable.scene == 1 && flag1 == false) {
+			if (TableManager.Instance.CurrentShape == TableManager.TableShape.Triangle && flag1 == false) {
 				pre_vr_area = 0;
 				vr_area = 0;
 				pre_re_area = 0;
@@ -55,7 +55,7 @@ public class HandTranslate : MonoBehaviour {
 				flag1 = true;
 				flag2 = false;
 			}
-			if (ChangeTable.scene == 2 && flag2 == false) {
+			if (TableManager.Instance.CurrentShape == TableManager.TableShape.Pentagon && flag2 == false) {
 				pre_vr_area = 3;
 				vr_area = 3;
 				pre_re_area = 0;
@@ -82,7 +82,7 @@ public class HandTranslate : MonoBehaviour {
 			}
 
 			//VR空間での手の位置を判定
-			if (GameObject.Find ("triangle")) {
+			if (TableManager.Instance.CurrentShape == TableManager.TableShape.Triangle) {
 				if (transform.localPosition.z < transform.localPosition.x / Mathf.Sqrt (3f) + triangle.z && transform.localPosition.z < -transform.localPosition.x / Mathf.Sqrt (3f) + triangle.z && vr_area != 0) {
 					vr_area = 0;
 					tmp2 = true;
@@ -94,7 +94,7 @@ public class HandTranslate : MonoBehaviour {
 					tmp2 = true;
 				}
 			}
-			if (GameObject.Find ("pentagon")) {
+			if (TableManager.Instance.CurrentShape == TableManager.TableShape.Pentagon) {
 				if (transform.localPosition.z < transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + pentagon.z && transform.localPosition.z < -transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + pentagon.z && vr_area != 3) {
 					vr_area = 3;
 					tmp2 = true;
@@ -173,8 +173,8 @@ public class HandTranslate : MonoBehaviour {
 	}
 		
 	void trans_con(){
-		con_pos = new Vector3 (controller.transform.position.x * Mathf.Cos (ChangeTable.dir * 90f * Mathf.Deg2Rad) - controller.transform.position.z * Mathf.Sin (ChangeTable.dir * 90f * Mathf.Deg2Rad), controller.transform.position.y, controller.transform.position.x * Mathf.Sin (ChangeTable.dir * 90f * Mathf.Deg2Rad) + controller.transform.position.z * Mathf.Cos (ChangeTable.dir * 90f * Mathf.Deg2Rad));
-		con_angle = new Vector3 (controller.transform.eulerAngles.x, controller.transform.eulerAngles.y - ChangeTable.dir * 90f, controller.transform.eulerAngles.z);
+		con_pos = new Vector3 (controller.transform.position.x * Mathf.Cos (TableManager.Instance.dir * 90f * Mathf.Deg2Rad) - controller.transform.position.z * Mathf.Sin (TableManager.Instance.dir * 90f * Mathf.Deg2Rad), controller.transform.position.y, controller.transform.position.x * Mathf.Sin (TableManager.Instance.dir * 90f * Mathf.Deg2Rad) + controller.transform.position.z * Mathf.Cos (TableManager.Instance.dir * 90f * Mathf.Deg2Rad));
+		con_angle = new Vector3 (controller.transform.eulerAngles.x, controller.transform.eulerAngles.y - TableManager.Instance.dir * 90f, controller.transform.eulerAngles.z);
 	}
 
 	void trans_pos(float angle_gain,float theta,float center,float angle){
@@ -208,12 +208,12 @@ public class HandTranslate : MonoBehaviour {
 	void trans_hand(int re,int vr){
 		if (vr < 3) {
 			center = triangle.z;
-			trans_pos (GlobalVariables.Gain, 90f - GlobalVariables.Gain * 45f, center, (3 - vr) * 120f - 90f);
-			trans_angle (GlobalVariables.Gain - 1f, vr * 120 - re * 90f);
+			trans_pos (TableManager.Instance.Gain, 90f - TableManager.Instance.Gain * 45f, center, (3 - vr) * 120f - 90f);
+			trans_angle (TableManager.Instance.Gain - 1f, vr * 120 - re * 90f);
 		} else {
 			center = pentagon.z;
-			trans_pos (GlobalVariables.Gain, 90f - GlobalVariables.Gain * 45f, center, (8 - vr) * 72f - 90f);
-			trans_angle (GlobalVariables.Gain - 1f, (vr - 3) * 72f - re * 90f);
+			trans_pos (TableManager.Instance.Gain, 90f - TableManager.Instance.Gain * 45f, center, (8 - vr) * 72f - 90f);
+			trans_angle (TableManager.Instance.Gain - 1f, (vr - 3) * 72f - re * 90f);
 		}
 	}
 		

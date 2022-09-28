@@ -1,0 +1,5 @@
+/Data/20220927135949.csv
+Time, Head.Position.x, Head.Position.y, Head.Position.z, rightHand.Position.x, rightHand.Position.y, rightHand.Position.z, leftHand.Position.x, leftHand.Position.y, leftHand.Position.z, Head.Rotation.x, Head.Rotation.y, Head.Rotation.z, rightHand.Rotation.x, rightHand.Rotation.y, rightHand.Rotation.z, leftHand.Rotation.x, leftHand.Rotation.y, leftHand.Rotation.z, Square, Triangle, Pentagon
+0.3533334, 0.05093324, 1.714906, 0.05076849, 0.2419326, 1.415638, 0.2222162, 0, 0, -0.055, 64.84623, 322.1472, 0.3129486, 46.14066, 334.7034, 165.7625, 0, 0, 0, True, False, False
+0.6866667, 0.08790994, 1.875789, -0.009946258, 0.2419326, 1.415638, 0.2222162, 0, 0, -0.055, 1.373176, 320.6728, 3.378455, 46.14066, 334.7034, 165.7625, 0, 0, 0, True, False, False
+1.02, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, True, False, False
