@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// HMDの回転を管理する
+/// </summary>
 public class RotationManager : Singleton<RotationManager> {
 
 	public GameObject wholeRoom;
@@ -33,7 +36,10 @@ public class RotationManager : Singleton<RotationManager> {
 
 	private float _rot = 0f;  //skyboxの回転量
 
-	public int direction = 0;  //テーブルに対してどの位置にいるかの判定
+    /// <summary>
+    /// テーブルに対してどの位置にいるかの判定
+    /// </summary>
+	public int direction = 0;
 
     /// <summary>
     /// 部屋の位置の初期値

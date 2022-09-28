@@ -4,8 +4,6 @@ using UnityEngine;
 
 public class HandTranslate : MonoBehaviour
 {
-	//public static float TableManager.Instance.TableWidth = 0.7f;  //テーブルの一辺の長さ
-	
 	private float re_r;  //現実でのテーブル中心からトラッカーまでの距離
 	private float re_theta;  //現実でのテーブル中心から下に下ろした直線と，トラッカーまでの直線のなす角（反時計回り正）
 	private float vr_r;  //VR空間でのテーブル中心からトラッカーまでの距離
@@ -21,10 +19,55 @@ public class HandTranslate : MonoBehaviour
 	private float angle_y = 0f, pre_angle_y = 0f,dy = 0f;  //現在の手の角度，境界領域に入った時の手の角度，角度の変化量
 	private float angle_tmp = 0f;  //領域の境に入った時変換式の回転角度を保持
 
-	private Vector3 square = new Vector3 (0f, 0f, 0f);  //四角形のテーブルの中心
-	private Vector3 triangle = new Vector3 (0f, 0f, TableManager.Instance.TableWidth / 2f * (1f / Mathf.Sqrt (3f) - 1f));  //三角形のテーブルの中心
-	private Vector3 pentagon = new Vector3 (0f, 0f, TableManager.Instance.TableWidth / 2f * (Mathf.Tan (54f * Mathf.Deg2Rad) - 1f));  //五角形のテーブルの中心
-	private float center;  //テーブルの中心
+    /// <summary>
+    /// 四角形のテーブルの中心
+    /// </summary>
+	private Vector3 SquareCenter
+    {
+        get
+        {
+            return Vector3.zero;
+        }
+    }
+    /// <summary>
+    /// 三角形のテーブルの中心
+    /// </summary>
+    private Vector3 TriangleCenter
+    {
+        get
+        {
+            return new Vector3(0f, 0f, TableManager.Instance.TableWidth / 2f * (1f / Mathf.Sqrt(3f) - 1f));
+        }
+    }
+    /// <summary>
+    /// 五角形のテーブルの中心
+    /// </summary>
+    private Vector3 PentagonCenter
+    {
+        get
+        {
+            return new Vector3(0f, 0f, TableManager.Instance.TableWidth / 2f * (Mathf.Tan(54f * Mathf.Deg2Rad) - 1f));
+        }
+    }
+    /// <summary>
+    /// テーブルの中心のz座標
+    /// </summary>
+	private float TableCenter
+    {
+        get
+        {
+            switch (TableManager.Instance.CurrentShape)
+            {
+                case TableManager.TableShape.Triangle:
+                    return TriangleCenter.z;
+                case TableManager.TableShape.Square:
+                default:
+                    return SquareCenter.z;
+                case TableManager.TableShape.Pentagon:
+                    return PentagonCenter.z;
+            }
+        }
+    }
 
 	private int pre_re_area = 0;  //一つ前の現実でのトラッカーの位置
 	private int re_area = 0;  //現在の現実でのトラッカーの位置
@@ -83,31 +126,31 @@ public class HandTranslate : MonoBehaviour
 
 			//VR空間での手の位置を判定
 			if (TableManager.Instance.CurrentShape == TableManager.TableShape.Triangle) {
-				if (transform.localPosition.z < transform.localPosition.x / Mathf.Sqrt (3f) + triangle.z && transform.localPosition.z < -transform.localPosition.x / Mathf.Sqrt (3f) + triangle.z && vr_area != 0) {
+				if (transform.localPosition.z < transform.localPosition.x / Mathf.Sqrt (3f) + TriangleCenter.z && transform.localPosition.z < -transform.localPosition.x / Mathf.Sqrt (3f) + TriangleCenter.z && vr_area != 0) {
 					vr_area = 0;
 					tmp2 = true;
-				} else if (transform.localPosition.z > transform.localPosition.x / Mathf.Sqrt (3f) + triangle.z && transform.localPosition.x < 0f && vr_area != 1) {
+				} else if (transform.localPosition.z > transform.localPosition.x / Mathf.Sqrt (3f) + TriangleCenter.z && transform.localPosition.x < 0f && vr_area != 1) {
 					vr_area = 1;
 					tmp2 = true;
-				} else if (transform.localPosition.z > -transform.localPosition.x / Mathf.Sqrt (3f) + triangle.z && transform.localPosition.x > 0f && vr_area != 2) {
+				} else if (transform.localPosition.z > -transform.localPosition.x / Mathf.Sqrt (3f) + TriangleCenter.z && transform.localPosition.x > 0f && vr_area != 2) {
 					vr_area = 2;
 					tmp2 = true;
 				}
 			}
 			if (TableManager.Instance.CurrentShape == TableManager.TableShape.Pentagon) {
-				if (transform.localPosition.z < transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + pentagon.z && transform.localPosition.z < -transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + pentagon.z && vr_area != 3) {
+				if (transform.localPosition.z < transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.z < -transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + PentagonCenter.z && vr_area != 3) {
 					vr_area = 3;
 					tmp2 = true;
-				} else if (transform.localPosition.z > transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + pentagon.z && transform.localPosition.z < -transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + pentagon.z && vr_area != 4) {
+				} else if (transform.localPosition.z > transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.z < -transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + PentagonCenter.z && vr_area != 4) {
 					vr_area = 4;
 					tmp2 = true;
-				} else if (transform.localPosition.z > -transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + pentagon.z && transform.localPosition.x < 0f && vr_area != 5) {
+				} else if (transform.localPosition.z > -transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.x < 0f && vr_area != 5) {
 					vr_area = 5;
 					tmp2 = true;
-				} else if (transform.localPosition.x > 0f && transform.localPosition.z > transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + pentagon.z && vr_area != 6) {
+				} else if (transform.localPosition.x > 0f && transform.localPosition.z > transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + PentagonCenter.z && vr_area != 6) {
 					vr_area = 6;
 					tmp2 = true;
-				} else if (transform.localPosition.z < transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + pentagon.z && transform.localPosition.z > -transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + pentagon.z && vr_area != 7) {
+				} else if (transform.localPosition.z < transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.z > -transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + PentagonCenter.z && vr_area != 7) {
 					vr_area = 7;
 					tmp2 = true;
 				}
@@ -121,7 +164,7 @@ public class HandTranslate : MonoBehaviour
 				tmp2 = false;
 			}
 
-			re_r = distance_2d (square, con_pos);
+			re_r = distance_2d (SquareCenter, con_pos);
 			re_theta = angle_2d (Vector3.back, con_pos);
 
 			//re_thetaには絶対値しか格納されないので，方向によって正負を判定
@@ -207,12 +250,12 @@ public class HandTranslate : MonoBehaviour
 
 	void trans_hand(int re,int vr){
 		if (vr < 3) {
-			center = triangle.z;
-			trans_pos (TableManager.Instance.Gain, 90f - TableManager.Instance.Gain * 45f, center, (3 - vr) * 120f - 90f);
+			//TableCenter = TriangleCenter.z;
+			trans_pos (TableManager.Instance.Gain, 90f - TableManager.Instance.Gain * 45f, TableCenter, (3 - vr) * 120f - 90f);
 			trans_angle (TableManager.Instance.Gain - 1f, vr * 120 - re * 90f);
 		} else {
-			center = pentagon.z;
-			trans_pos (TableManager.Instance.Gain, 90f - TableManager.Instance.Gain * 45f, center, (8 - vr) * 72f - 90f);
+			//TableCenter = PentagonCenter.z;
+			trans_pos (TableManager.Instance.Gain, 90f - TableManager.Instance.Gain * 45f, TableCenter, (8 - vr) * 72f - 90f);
 			trans_angle (TableManager.Instance.Gain - 1f, (vr - 3) * 72f - re * 90f);
 		}
 	}
