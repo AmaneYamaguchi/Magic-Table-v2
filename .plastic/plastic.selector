@@ -1,0 +1,3 @@
+rep "Magic Table@mizutani513@cloud"
+  path "/"
+    smartbranch "/main"
