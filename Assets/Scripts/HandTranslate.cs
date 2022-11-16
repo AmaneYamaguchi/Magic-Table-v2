@@ -2,22 +2,44 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// 手の動きを管理
+/// </summary>
 public class HandTranslate : MonoBehaviour
 {
-	private float re_r;  //現実でのテーブル中心からトラッカーまでの距離
-	private float re_theta;  //現実でのテーブル中心から下に下ろした直線と，トラッカーまでの直線のなす角（反時計回り正）
-	private float vr_r;  //VR空間でのテーブル中心からトラッカーまでの距離
-	private float vr_theta;  //VR空間でのなす角
+    /// <summary>
+    /// 現実でのテーブル中心からトラッカーまでの距離
+    /// </summary>
+	private float radiusReal;
+    /// <summary>
+    /// 現実でのテーブル中心から下に下ろした直線と，トラッカーまでの直線のなす角（反時計回り正）
+    /// </summary>
+	private float thetaReal;
+    /// <summary>
+    /// VR空間でのテーブル中心からトラッカーまでの距離
+    /// </summary>
+	private float radiusVirtual;
+    /// <summary>
+    /// VR空間でのなす角
+    /// </summary>
+	private float thetaVirtual;
 
-	private Vector3 con_pos;  //トラッカーの位置
-	private Vector3 con_angle;  //トラッカーの姿勢
-
-	private Vector3 pre_pos; //直前の手の位置
-
-	public GameObject controller;  //トラッカー
-
-	private float angle_y = 0f, pre_angle_y = 0f,dy = 0f;  //現在の手の角度，境界領域に入った時の手の角度，角度の変化量
-	private float angle_tmp = 0f;  //領域の境に入った時変換式の回転角度を保持
+    /// <summary>
+    /// トラッカーの位置
+    /// </summary>
+	private Vector3 realTrackerPos;
+    /// <summary>
+    /// トラッカーの姿勢
+    /// </summary>
+	private Vector3 realTrackerRot;
+    /// <summary>
+    /// 直前の手の位置
+    /// </summary>
+	private Vector3 handPosBefore;
+    /// <summary>
+    /// トラッカー
+    /// </summary>
+	public GameObject target;
 
     /// <summary>
     /// 四角形のテーブルの中心
@@ -52,212 +74,353 @@ public class HandTranslate : MonoBehaviour
     /// <summary>
     /// テーブルの中心のz座標
     /// </summary>
-	private float TableCenter
+	private Vector3 TableCenter
     {
         get
         {
             switch (TableManager.Instance.CurrentShape)
             {
                 case TableManager.TableShape.Triangle:
-                    return TriangleCenter.z;
+                    return TriangleCenter;
                 case TableManager.TableShape.Square:
                 default:
-                    return SquareCenter.z;
+                    return SquareCenter;
                 case TableManager.TableShape.Pentagon:
-                    return PentagonCenter.z;
+                    return PentagonCenter;
             }
         }
     }
 
-	private int pre_re_area = 0;  //一つ前の現実でのトラッカーの位置
-	private int re_area = 0;  //現在の現実でのトラッカーの位置
-	private int pre_vr_area = 0;  //VR空間での一つ前の手の位置
-	private int vr_area = 0;  //VR空間での現在の手の位置
+    /// <summary>
+    /// 一つ前の現実でのトラッカーの位置
+    /// </summary>
+	//private SquareDirection TrackerDirectionRealBefore = SquareDirection.Edge0;
+    /// <summary>
+    /// 現在の現実でのトラッカーの位置
+    /// </summary>
+	private SquareDirection TrackerDirectionReal
+    {
+        get
+        {
+            // 現実でのトラッカーの位置を判定
+            if (realTrackerPos.z < realTrackerPos.x && realTrackerPos.z < -realTrackerPos.x) return SquareDirection.Edge0;
+            if (realTrackerPos.z > realTrackerPos.x && realTrackerPos.z < -realTrackerPos.x) return SquareDirection.Edge90;
+            if (realTrackerPos.z > realTrackerPos.x && realTrackerPos.z > -realTrackerPos.x) return SquareDirection.Edge180;
+            if (realTrackerPos.z < realTrackerPos.x && realTrackerPos.z > -realTrackerPos.x) return SquareDirection.Edge270;
 
-	private bool flag1=false;  //シーンが１になったかどうか
-	private bool flag2=false;  //シーンが２になったかどうか
-	//enum型をつかうといいかも
+            return SquareDirection.Verticle;
+        }
+    }
+    /// <summary>
+    /// VR空間での一つ前の手の位置
+    /// </summary>
+	//private int TrackerDirectionVirtualBefore = 0;
+    /// <summary>
+    /// VR空間での現在の手の位置
+    /// 三角形で012，五角形で34567
+    /// </summary>
+	//private int TrackerDirectionVirtual = 0;
+    /// <summary>
+    /// VR空間で三角形の時の手の位置
+    /// </summary>
+    private TriangleDirection TrackerDirectionVirtualTriangle
+    {
+        get
+        {
+            if (transform.localPosition.z < transform.localPosition.x / Mathf.Sqrt(3f) + TriangleCenter.z && transform.localPosition.z < -transform.localPosition.x / Mathf.Sqrt(3f) + TriangleCenter.z) return TriangleDirection.Edge0;
+            if (transform.localPosition.z > transform.localPosition.x / Mathf.Sqrt(3f) + TriangleCenter.z && transform.localPosition.x < 0f) return TriangleDirection.Edge120;
+            if (transform.localPosition.z > -transform.localPosition.x / Mathf.Sqrt(3f) + TriangleCenter.z && transform.localPosition.x > 0f) return TriangleDirection.Edge240;
 
-	private bool tmp1 = false;  //現実でのトラッカーの位置が変わったかの判定
-	private bool tmp2 = false;  //VR空間での手の位置が変わったかの判定
-	private bool tmp3 = false;  //エリアの境目に入ったかどうかの判定
+            return TriangleDirection.Verticle;
+        }
+    }
+    /// <summary>
+    /// 1つ前の手の位置
+    /// </summary>
+    //private TriangleDirection TrackerDirectionVirtualTriangleBefore = TriangleDirection.Edge0;
+    /// <summary>
+    /// VR空間で五角形の時の手の位置
+    /// </summary>
+    private PentagonDirection TrackerDirectionVirtualPentagon
+    {
+        get
+        {
+            if (transform.localPosition.z < transform.localPosition.x * Mathf.Tan(54f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.z < -transform.localPosition.x * Mathf.Tan(54f * Mathf.Deg2Rad) + PentagonCenter.z) return PentagonDirection.Edge0;
+            if (transform.localPosition.z > transform.localPosition.x * Mathf.Tan(54f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.z < -transform.localPosition.x * Mathf.Tan(18f * Mathf.Deg2Rad) + PentagonCenter.z) return PentagonDirection.Edge72;
+            if (transform.localPosition.z > -transform.localPosition.x * Mathf.Tan(18f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.x < 0f) return PentagonDirection.Edge144;
+            if (transform.localPosition.x > 0f && transform.localPosition.z > transform.localPosition.x * Mathf.Tan(18f * Mathf.Deg2Rad) + PentagonCenter.z) return PentagonDirection.Edge216;
+            if (transform.localPosition.z < transform.localPosition.x * Mathf.Tan(18f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.z > -transform.localPosition.x * Mathf.Tan(54f * Mathf.Deg2Rad) + PentagonCenter.z) return PentagonDirection.Edge288;
 
-	void Start () {
-		controller.SetActive (true);
+            return PentagonDirection.Verticle;
+        }
+    }
+    /// <summary>
+    /// 1つ前の手の位置
+    /// </summary>
+    //private PentagonDirection TrackerDirectionVirtualPentagonBefore = PentagonDirection.Edge0;
+
+    /// <summary>
+    /// 現実でのトラッカーの位置が変わったかの判定
+    /// </summary>
+    /*
+	private bool trackerMovedReal
+    {
+        get
+        {
+            return TrackerDirectionRealBefore != TrackerDirectionReal;
+        }
+    }
+    */
+    /// <summary>
+    /// VR空間での手の位置が変わったかの判定
+    /// </summary>
+    /*
+    private bool trackerMovedVirtual
+    {
+        get
+        {
+            //return TrackerDirectionVirtualBefore != TrackerDirectionVirtual;
+            return TableManager.Instance.CurrentShape == TableManager.TableShape.Pentagon ?
+                TrackerDirectionVirtualPentagonBefore != TrackerDirectionVirtualPentagon :
+                TrackerDirectionVirtualTriangleBefore != TrackerDirectionVirtualTriangle;
+        }
+    }
+    */
+
+	void Start ()
+    {
+		target.SetActive(true);
 	}
 
-	void Update () {
-		if (TableManager.Instance.CurrentShape != TableManager.TableShape.Square) {
-			trans_con ();  //テーブルを変形させた時の位置によって変換したトラッカーの座標，姿勢を格納
+	void Update ()
+    {
+        // 四角形の場合はそのまま
+        if (TableManager.Instance.CurrentShape == TableManager.TableShape.Square)
+        {
+            transform.position = target.transform.position;
+            transform.rotation = target.transform.rotation;
+        }
+		else
+        {
+			UpdateRealHand(); //テーブルを変形させた時の位置によって変換したトラッカーの座標，姿勢を格納
 
-			if (TableManager.Instance.CurrentShape == TableManager.TableShape.Triangle && flag1 == false) {
-				pre_vr_area = 0;
-				vr_area = 0;
-				pre_re_area = 0;
-				re_area = 0;
-				flag1 = true;
-				flag2 = false;
-			}
-			if (TableManager.Instance.CurrentShape == TableManager.TableShape.Pentagon && flag2 == false) {
-				pre_vr_area = 3;
-				vr_area = 3;
-				pre_re_area = 0;
-				re_area = 0;
-				flag2 = true;
-				flag1 = false;
-			}
+            // リアルの手の位置を取得
+			radiusReal = DistancePlanar(SquareCenter, realTrackerPos);
+			thetaReal = AnglePlanar (Vector3.back, realTrackerPos);
 
-
-
-			//現実でのトラッカーの位置を判定
-			if (con_pos.z < con_pos.x && con_pos.z < -con_pos.x && re_area != 0) {
-				re_area = 0;
-				tmp1 = true;
-			} else if (con_pos.z > con_pos.x && con_pos.z < -con_pos.x && re_area != 1) {
-				re_area = 1;
-				tmp1 = true;
-			} else if (con_pos.z > con_pos.x && con_pos.z > -con_pos.x && re_area != 2) {
-				re_area = 2;
-				tmp1 = true;
-			} else if (con_pos.z < con_pos.x && con_pos.z > -con_pos.x && re_area != 3) {
-				re_area = 3;
-				tmp1 = true;
-			}
-
-			//VR空間での手の位置を判定
-			if (TableManager.Instance.CurrentShape == TableManager.TableShape.Triangle) {
-				if (transform.localPosition.z < transform.localPosition.x / Mathf.Sqrt (3f) + TriangleCenter.z && transform.localPosition.z < -transform.localPosition.x / Mathf.Sqrt (3f) + TriangleCenter.z && vr_area != 0) {
-					vr_area = 0;
-					tmp2 = true;
-				} else if (transform.localPosition.z > transform.localPosition.x / Mathf.Sqrt (3f) + TriangleCenter.z && transform.localPosition.x < 0f && vr_area != 1) {
-					vr_area = 1;
-					tmp2 = true;
-				} else if (transform.localPosition.z > -transform.localPosition.x / Mathf.Sqrt (3f) + TriangleCenter.z && transform.localPosition.x > 0f && vr_area != 2) {
-					vr_area = 2;
-					tmp2 = true;
-				}
-			}
-			if (TableManager.Instance.CurrentShape == TableManager.TableShape.Pentagon) {
-				if (transform.localPosition.z < transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.z < -transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + PentagonCenter.z && vr_area != 3) {
-					vr_area = 3;
-					tmp2 = true;
-				} else if (transform.localPosition.z > transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.z < -transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + PentagonCenter.z && vr_area != 4) {
-					vr_area = 4;
-					tmp2 = true;
-				} else if (transform.localPosition.z > -transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.x < 0f && vr_area != 5) {
-					vr_area = 5;
-					tmp2 = true;
-				} else if (transform.localPosition.x > 0f && transform.localPosition.z > transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + PentagonCenter.z && vr_area != 6) {
-					vr_area = 6;
-					tmp2 = true;
-				} else if (transform.localPosition.z < transform.localPosition.x * Mathf.Tan (18f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.z > -transform.localPosition.x * Mathf.Tan (54f * Mathf.Deg2Rad) + PentagonCenter.z && vr_area != 7) {
-					vr_area = 7;
-					tmp2 = true;
-				}
-			}
-
-			//現実，VR空間両方で位置が変化した場合変換式を変更
-			if (tmp1 == true && tmp2 == true) {
-				pre_re_area = re_area;
-				pre_vr_area = vr_area;
-				tmp1 = false;
-				tmp2 = false;
-			}
-
-			re_r = distance_2d (SquareCenter, con_pos);
-			re_theta = angle_2d (Vector3.back, con_pos);
-
-			//re_thetaには絶対値しか格納されないので，方向によって正負を判定
-			//トラッカーの場所によって90°ずつ値を変更
-			if (Vector3.Cross (Vector3.back, con_pos).y > 0f) {
-				re_theta *= -1;
-				re_theta += pre_re_area * 90f;
-			} else{
-				if (pre_re_area == 3)
-					re_theta -= 90f;
-				else
-					re_theta -= pre_re_area * 90f;
-			}
-				
-			trans_hand (pre_re_area, pre_vr_area);
-
-
-			//手が大きく飛んだ時元の位置に戻す
-			if ((pre_pos - transform.position).magnitude > 0.2f) {
-				//transform.position = pre_pos;
-				transform.position = controller.transform.position;
-				tmp1 = true;
-			}
-		} else {
-			transform.position = new Vector3 (controller.transform.position.x, controller.transform.position.y, controller.transform.position.z);
-			transform.eulerAngles = new Vector3 (controller.transform.eulerAngles.x, controller.transform.eulerAngles.y, controller.transform.eulerAngles.z);
+            // 位置を更新
+			//UpdateVirtualHand(TrackerDirectionRealBefore, TrackerDirectionVirtualBefore);
+            if (TableManager.Instance.CurrentShape == TableManager.TableShape.Pentagon)
+            {
+                //UpdateVirtualHand(TrackerDirectionRealBefore, TrackerDirectionVirtualPentagonBefore);
+                UpdateVirtualHand(TrackerDirectionReal, TrackerDirectionVirtualPentagon);
+            }
+            else
+            {
+                //UpdateVirtualHand(TrackerDirectionRealBefore, TrackerDirectionVirtualTriangleBefore);
+                UpdateVirtualHand(TrackerDirectionReal, TrackerDirectionVirtualTriangle);
+            }
 		}
 
-		//手の位置がおかしくなったときはenter
-		if (Input.GetKeyDown (KeyCode.Return)) {
-			transform.position = controller.transform.position;
-			tmp1 = true;
+        //手が大きく飛んだ時元の位置に戻す
+        if (0.15f * 0.15f < (handPosBefore - transform.position).sqrMagnitude)
+        {
+            ResetVirtualHand();
+        }
+        //手の位置がおかしくなったときはenter
+        if (Input.GetKeyDown (KeyCode.Return))
+        {
+            ResetVirtualHand();
 		}
-		pre_pos = transform.position;
+		
 	}
+    private void LateUpdate()
+    {
+        handPosBefore = transform.position;
+        //TrackerDirectionRealBefore = TrackerDirectionReal;
+        //TrackerDirectionVirtualBefore = TrackerDirectionVirtual;
+        //TrackerDirectionVirtualTriangleBefore = TrackerDirectionVirtualTriangle;
+        //TrackerDirectionVirtualPentagonBefore = TrackerDirectionVirtualPentagon;
+    }
 
-	//2次元での二つの物体の距離
-	float distance_2d(Vector3 vec1,Vector3 vec2){	
+    /// <summary>
+    /// 2次元での二つの物体の距離
+    /// </summary>
+    /// <param name="vec1"></param>
+    /// <param name="vec2"></param>
+    /// <returns></returns>
+    float DistancePlanar(Vector3 vec1,Vector3 vec2)
+    {	
 		Vector2 v1 = new Vector2 (vec1.x, vec1.z);
 		Vector2 v2 = new Vector2 (vec2.x, vec2.z);
 		return Vector2.Distance (v1, v2);
 	}
 
-	//2次元での二つのベクトルのなす角
-	float angle_2d(Vector3 vec1,Vector3 vec2){
+    /// <summary>
+    /// 2次元での二つのベクトルのなす角
+    /// </summary>
+    /// <param name="vec1"></param>
+    /// <param name="vec2"></param>
+    /// <returns></returns>
+    float AnglePlanar(Vector3 vec1,Vector3 vec2)
+    {
 		Vector2 v1 = new Vector2 (vec1.x, vec1.z);
 		Vector2 v2 = new Vector2 (vec2.x, vec2.z);
-		return Vector2.Angle (v1, v2);
+        //return Vector2.SignedAngle (v1, v2);
+        var theta = Vector2.Angle(v1, v2);
+
+        //thetaRealには絶対値しか格納されないので，方向によって正負を判定
+        //トラッカーの場所によって90°ずつ値を変更
+        if (Vector3.Cross(vec1, vec2).y > 0f) // 右手系でマイナスの時
+        {
+            // 逆転
+            theta *= -1;
+            //theta += (float)TrackerDirectionRealBefore;
+            theta += (float)TrackerDirectionReal;
+        }
+        else
+        {
+            //if (TrackerDirectionRealBefore == SquareDirection.Edge270)
+            if (TrackerDirectionReal == SquareDirection.Edge270)
+                theta -= 90f;
+            else
+                //theta -= (float)TrackerDirectionRealBefore;
+                theta -= (float)TrackerDirectionReal;
+        }
+
+        return theta;
+    }
+
+    /// <summary>
+    /// リアルの手の方向を南に戻す
+    /// </summary>
+    /*
+    public void ResetRealHandDirection()
+    {
+        TrackerDirectionRealBefore = 0;
+        //TrackerDirectionReal = 0;
+    }
+    */
+    /// <summary>
+    /// バーチャルの手の方向を南に戻す
+    /// </summary>
+    /// <param name="shape"></param>
+    /*
+    public void ResetVirtualHandDirection(TableManager.TableShape shape = TableManager.TableShape.Square)
+    {
+        //TrackerDirectionVirtualBefore = shape == TableManager.TableShape.Pentagon ? 3 : 0;
+        //TrackerDirectionVirtual = shape == TableManager.TableShape.Pentagon ? 3 : 0;
+
+        //TrackerDirectionVirtualTriangleBefore = TriangleDirection.Edge0;
+        //TrackerDirectionVirtualPentagonBefore = PentagonDirection.Edge0;
+    }
+    */
+
+	/// <summary>
+    /// リアルの手の位置を更新する（世界が回転している分だけ回転する）
+    /// </summary>
+	void UpdateRealHand()
+    {
+		realTrackerPos = new Vector3 (
+            target.transform.position.x * Mathf.Cos ((int)RotationManager.Instance.HMDDirection * Mathf.Deg2Rad) - target.transform.position.z * Mathf.Sin((int)RotationManager.Instance.HMDDirection * Mathf.Deg2Rad),
+            target.transform.position.y,
+            target.transform.position.x * Mathf.Sin ((int)RotationManager.Instance.HMDDirection * Mathf.Deg2Rad) + target.transform.position.z * Mathf.Cos((int)RotationManager.Instance.HMDDirection * Mathf.Deg2Rad)
+            );
+		realTrackerRot = new Vector3(
+            target.transform.eulerAngles.x,
+            target.transform.eulerAngles.y - (int)RotationManager.Instance.HMDDirection,
+            target.transform.eulerAngles.z
+            );
 	}
-		
-	void trans_con(){
-		con_pos = new Vector3 (controller.transform.position.x * Mathf.Cos (TableManager.Instance.dir * 90f * Mathf.Deg2Rad) - controller.transform.position.z * Mathf.Sin (TableManager.Instance.dir * 90f * Mathf.Deg2Rad), controller.transform.position.y, controller.transform.position.x * Mathf.Sin (TableManager.Instance.dir * 90f * Mathf.Deg2Rad) + controller.transform.position.z * Mathf.Cos (TableManager.Instance.dir * 90f * Mathf.Deg2Rad));
-		con_angle = new Vector3 (controller.transform.eulerAngles.x, controller.transform.eulerAngles.y - TableManager.Instance.dir * 90f, controller.transform.eulerAngles.z);
+    /// <summary>
+    /// バーチャルの手の位置を更新する
+    /// </summary>
+    /// <param name="gain"></param>
+    /// <param name="tableCenter"></param>
+    /// <param name="angle"></param>
+	void UpdateVirtualHandPos(float gain, Vector3 tableCenter, float angle)
+    {
+        var theta = 90f - gain * 45f;
+		thetaVirtual = thetaReal * gain;
+		radiusVirtual = radiusReal * Mathf.Tan(theta * Mathf.Deg2Rad) * Mathf.Cos(thetaReal * Mathf.Deg2Rad) / Mathf.Cos(thetaVirtual * Mathf.Deg2Rad);
+		transform.localPosition = tableCenter + new Vector3 (
+            radiusVirtual * Mathf.Cos ((thetaVirtual + angle) * Mathf.Deg2Rad),
+            realTrackerPos.y,
+            radiusVirtual * Mathf.Sin ((thetaVirtual + angle) * Mathf.Deg2Rad));
 	}
 
-	void trans_pos(float angle_gain,float theta,float center,float angle){
-		vr_theta = re_theta * angle_gain;
-		vr_r = re_r * Mathf.Tan (theta * Mathf.Deg2Rad) * Mathf.Cos (re_theta * Mathf.Deg2Rad) / Mathf.Cos (vr_theta * Mathf.Deg2Rad);
-		transform.localPosition = new Vector3 (vr_r * Mathf.Cos ((vr_theta + angle) * Mathf.Deg2Rad), con_pos.y, vr_r * Mathf.Sin ((vr_theta + angle) * Mathf.Deg2Rad) + center);
-	}
+    // こいつらはUpdateVirtualHandRotでのみ使用
+    /// <summary>
+    /// 境界領域に入った時の手の角度
+    /// </summary>
+    private float rotOnEnteringBoarder = 0f;
+    /// <summary>
+    /// 領域の境に入った時変換式の回転角度を保持
+    /// </summary>
+    private float angleOnEnteringBoarder = 0f;
+    /// <summary>
+    /// エリアの境目に入ったかどうかの判定
+    /// </summary>
+    private bool hasEntered2Boarder = false;
+    /// <summary>
+    /// バーチャルの手の角度を更新する
+    /// </summary>
+    /// <param name="gain"></param>
+    /// <param name="angle"></param>
+	void UpdateVirtualHandRot(float gain, float angle)
+    {
+        // 境目（リアルのテーブルの角）を通過した場合
+        if (Mathf.Abs (transform.position.x - transform.position.z) < 0.1f * Mathf.Sqrt(2f) || Mathf.Abs (transform.position.x + transform.position.z) < 0.1f * Mathf.Sqrt(2f))
+        {
+            // 最初のフレームで値を更新
+			if (!hasEntered2Boarder)
+            {
+				rotOnEnteringBoarder = realTrackerRot.y;
+				angleOnEnteringBoarder = angle;
+				hasEntered2Boarder = true;
+			}
+            //angle_y = realTrackerRot.y; // angle_yを削除
 
-	void trans_angle(float gain ,float angle){
-		if (Mathf.Abs (transform.position.x - transform.position.z) / Mathf.Sqrt (2f) < 0.1f || Mathf.Abs (transform.position.x + transform.position.z) / Mathf.Sqrt (2f) < 0.1f) {
-			if (tmp3 == false) {
-				pre_angle_y = con_angle.y;
-				angle_tmp = angle;
-				tmp3 = true;
-			}
-			angle_y = con_angle.y;
-			if (dy - (angle_y - pre_angle_y) < -300f) {
-				dy = angle_y - pre_angle_y - 360f;
-			} else if (dy - (angle_y - pre_angle_y) > 300f) {
-				dy = angle_y - pre_angle_y + 360f;
-			} else {
-				dy = angle_y - pre_angle_y;
-			}
-			transform.localEulerAngles = new Vector3 (con_angle.x, con_angle.y + dy * gain + angle_tmp, con_angle.z);
-		} else {
-			transform.localEulerAngles = new Vector3 (con_angle.x, con_angle.y + angle, con_angle.z);
-			tmp3 = false;
+            // dyを360°の範囲に収める
+            var dy = realTrackerRot.y - rotOnEnteringBoarder; //angle_y - pre_angle_y;
+            if (dy < 0f) dy += 360f;
+            if (360f < dy) dy -= 360f;
+
+			transform.localEulerAngles = new Vector3 (realTrackerRot.x, realTrackerRot.y + dy * gain + angleOnEnteringBoarder, realTrackerRot.z);
+		}
+        // 通過してない場合（普通）
+        else
+        {
+			transform.localEulerAngles = new Vector3 (realTrackerRot.x, realTrackerRot.y + angle, realTrackerRot.z);
+			hasEntered2Boarder = false;
 		}
 	}
+    /// <summary>
+    /// バーチャルの手の位置姿勢を更新する
+    /// </summary>
+    /// <param name="realDir"></param>
+    /// <param name="vrDir"></param>
+    private void UpdateVirtualHand(SquareDirection realDir, TriangleDirection vrDir)
+    {
+        UpdateVirtualHandPos(TableManager.Instance.Gain, TableCenter, 270f - (float)vrDir);
+        UpdateVirtualHandRot(TableManager.Instance.Gain - 1f, (float)vrDir - (float)realDir);
+    }
+    /// <summary>
+    /// バーチャルの手の位置姿勢を更新する
+    /// </summary>
+    /// <param name="realDir"></param>
+    /// <param name="vrDir"></param>
+    private void UpdateVirtualHand(SquareDirection realDir, PentagonDirection vrDir)
+    {
+        UpdateVirtualHandPos(TableManager.Instance.Gain, TableCenter, 270f - (float)vrDir);
+        UpdateVirtualHandRot(TableManager.Instance.Gain - 1f, (float)vrDir - (float)realDir);
+    }
 
-	void trans_hand(int re,int vr){
-		if (vr < 3) {
-			//TableCenter = TriangleCenter.z;
-			trans_pos (TableManager.Instance.Gain, 90f - TableManager.Instance.Gain * 45f, TableCenter, (3 - vr) * 120f - 90f);
-			trans_angle (TableManager.Instance.Gain - 1f, vr * 120 - re * 90f);
-		} else {
-			//TableCenter = PentagonCenter.z;
-			trans_pos (TableManager.Instance.Gain, 90f - TableManager.Instance.Gain * 45f, TableCenter, (8 - vr) * 72f - 90f);
-			trans_angle (TableManager.Instance.Gain - 1f, (vr - 3) * 72f - re * 90f);
-		}
-	}
-		
+    /// <summary>
+    /// バーチャルの手の位置をリセットする
+    /// </summary>
+    private void ResetVirtualHand()
+    {
+        transform.position = target.transform.position;
+    }
 }

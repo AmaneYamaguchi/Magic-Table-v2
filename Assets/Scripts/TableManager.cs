@@ -42,16 +42,17 @@ public class TableManager : Singleton<TableManager> {
     /// </summary>
 	private AudioSource audioSource;
     /// <summary>
-    /// 頭の位置によってテーブルの向きを変えるのに使用するインデックス？
-    /// </summary>
-	public int dir = 0;
-    /// <summary>
     /// 現在テーブルの形状が変化している
     /// </summary>
     public bool IsChanging
     {
         private set; get;
     } = false;
+
+    [SerializeField]
+    private HandTranslate rightHand;
+    [SerializeField]
+    private HandTranslate leftHand;
 
     /// <summary>
     /// テーブルの形状
@@ -80,6 +81,12 @@ public class TableManager : Singleton<TableManager> {
 
             // 実際にテーブルの形状を変更する
             StartCoroutine(ChangeTableShape(value));
+
+            // HandTranslateの状態を更新する
+            //rightHand.ResetRealHandDirection();
+            //rightHand.ResetVirtualHandDirection(value);
+            //leftHand.ResetRealHandDirection();
+            //leftHand.ResetVirtualHandDirection(value);
         }
         get
         {
@@ -102,61 +109,6 @@ public class TableManager : Singleton<TableManager> {
         base.Awake();
         StopSmoke();
 		audioSource = GetComponent<AudioSource>() ?? gameObject.AddComponent<AudioSource>();
-	}
-	void Update () {
-		//手を机の中心に合わせると机が変わる
-        /*
-		if ((Out == 1 && CurrentShape == TableShape.Triangle && distance_2d (magic1.transform.position, transform.position) < 0.2f && transform.position.y < 1f && transform.position.y > 0.5f && Rotation.direction != 4) || Input.GetKeyUp ("a")) {
-            //四角形から三角形に変える
-            //GlobalVariables.Gain = 4f / 3f;
-            CurrentShape = TableShape.Triangle;
-			PlaySmoke ();
-			audiosource.PlayOneShot (se);
-			dir = Rotation.direction;
-			Invoke ("set3", 1.5f);
-			Invoke ("table_direction", 0.8f);
-			Invoke ("del4", 0.7f);
-			//Invoke ("scene0to1", 0.8f);
-			Out = 0;
-			duration = 0f;
-		}
-
-		if ((Out == 1 && CurrentShape == TableShape.Square && distance_2d (magic2.transform.position, transform.position) < 0.17f && transform.position.y < 1f && transform.position.y > 0.5f && Rotation.direction != 4) || Input.GetKey ("b")) {
-            //三角形から五角形に変える
-            //GlobalVariables.Gain = 0.8f;
-            CurrentShape = TableShape.Pentagon;
-			PlaySmoke ();
-			audiosource.PlayOneShot (se);
-			dir = Rotation.direction;
-			Invoke ("set5", 1.5f);
-			Invoke ("table_direction", 0.8f);
-			Invoke ("del3", 0.7f);
-			//Invoke ("scene1to2", 0.8f);
-			Out = 0;
-			duration = 0f;
-		}
-
-		if ((Out == 1 && CurrentShape == TableShape.Pentagon && distance_2d (magic3.transform.position, transform.position) < 0.2f && transform.position.y < 1f && transform.position.y > 0.5f && Rotation.direction != 4) || Input.GetKey ("c")) {
-            //五角形から四角形に変える
-            //GlobalVariables.Gain = 1f;
-            CurrentShape = TableShape.Square;
-            PlaySmoke ();
-			audiosource.PlayOneShot (se);
-			dir = Rotation.direction;
-			Invoke ("set4", 1.5f);
-			Invoke ("table_direction", 0.8f);
-			Invoke ("del5", 0.7f);
-			//Invoke ("scene2to0", 0.8f);
-			Out = 0;
-			duration = 0f;
-		}
-        */
-
-		//duration += Time.deltaTime;
-		//if (duration > 15f) {
-			//Out = 1;
-		//}
-
 	}
 
 	/// <summary>
@@ -208,8 +160,7 @@ public class TableManager : Singleton<TableManager> {
         // nextShapeのテーブルを有効化する
         ActivateTable(nextShape);
 
-        // 何？
-        dir = RotationManager.Instance.direction;
+        // テーブルの辺が丁度いい位置に来るようにテーブルの角度を変更する
         InitializeTableDirection();
 
         yield return new WaitForSeconds(0.8f);
@@ -219,9 +170,13 @@ public class TableManager : Singleton<TableManager> {
 
         yield return 0f;
     }
-		
-	void InitializeTableDirection(){
-		TableDirection.transform.eulerAngles = new Vector3 (0f, dir * 90f, 0f);
+	/// <summary>
+    /// テーブルの方向を初期化する
+    /// </summary>
+	private void InitializeTableDirection()
+    {
+        // 角にいる時はテーブルの方向を変えられないってこと？
+		TableDirection.transform.eulerAngles = new Vector3 (0f, (int)RotationManager.Instance.HMDDirection * 90f, 0f);
 		TableDirection.transform.position = Vector3.zero;
 	}
 

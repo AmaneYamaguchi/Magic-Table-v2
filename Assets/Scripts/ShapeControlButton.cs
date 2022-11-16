@@ -1,20 +1,20 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
-/// G‚ê‚½‚Æ‚«‚Éƒe[ƒuƒ‹‚ÌŒ`ó‚ğ•Ï‚¦‚é‚æ‚¤‚Èƒ{ƒ^ƒ“
+/// è§¦ã‚ŒãŸã¨ãã«ãƒ†ãƒ¼ãƒ–ãƒ«ã®å½¢çŠ¶ã‚’å¤‰ãˆã‚‹ã‚ˆã†ãªãƒœã‚¿ãƒ³
 /// </summary>
 [RequireComponent(typeof(Rigidbody), typeof(Collider))]
 public class ShapeControlButton : MonoBehaviour
 {
     /// <summary>
-    /// Œ`ó‚Ì•Ï‰»æ
+    /// å½¢çŠ¶ã®å¤‰åŒ–å…ˆ
     /// </summary>
     public TableManager.TableShape shape;
 
     /// <summary>
-    /// G‚ê‚½‚Æ‚«‚Éƒe[ƒuƒ‹‚ÌŒ`ó‚ğ•ÏX
+    /// è§¦ã‚ŒãŸã¨ãã«ãƒ†ãƒ¼ãƒ–ãƒ«ã®å½¢çŠ¶ã‚’å¤‰æ›´
     /// </summary>
     /// <param name="other"></param>
     private void OnTriggerEnter(Collider other)
