@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// テーブルの変形を管理するクラス
+/// </summary>
 public class TableManager : Singleton<TableManager> {
     /// <summary>
     /// テーブルの1辺の大きさ
@@ -10,7 +13,7 @@ public class TableManager : Singleton<TableManager> {
     {
         get
         {
-            return 0.7f;
+            return 0.8f;
         }
     }
 	/// <summary>
@@ -175,8 +178,8 @@ public class TableManager : Singleton<TableManager> {
     /// </summary>
 	private void InitializeTableDirection()
     {
-        // 角にいる時はテーブルの方向を変えられないってこと？
-		TableDirection.transform.eulerAngles = new Vector3 (0f, (int)RotationManager.Instance.HMDDirection * 90f, 0f);
+        // 角にいる時はテーブルの方向を変えられない
+		TableDirection.transform.eulerAngles = new Vector3 (0f, (float)WorldTranslate.Instance.HMDDirection, 0f);
 		TableDirection.transform.position = Vector3.zero;
 	}
 
@@ -199,6 +202,7 @@ public class TableManager : Singleton<TableManager> {
             {
                 CurrentShape = TableShape.Pentagon;
             }
+            GUILayout.Label($"dir = {WorldTranslate.Instance.HMDDirection}");
         }, "Table Manager (Debug)");
     }
 }

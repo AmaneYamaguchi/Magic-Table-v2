@@ -108,7 +108,7 @@ public class HandTranslate : MonoBehaviour
             if (realTrackerPos.z > realTrackerPos.x && realTrackerPos.z > -realTrackerPos.x) return SquareDirection.Edge180;
             if (realTrackerPos.z < realTrackerPos.x && realTrackerPos.z > -realTrackerPos.x) return SquareDirection.Edge270;
 
-            return SquareDirection.Verticle;
+            return SquareDirection.Other;
         }
     }
     /// <summary>
@@ -131,7 +131,7 @@ public class HandTranslate : MonoBehaviour
             if (transform.localPosition.z > transform.localPosition.x / Mathf.Sqrt(3f) + TriangleCenter.z && transform.localPosition.x < 0f) return TriangleDirection.Edge120;
             if (transform.localPosition.z > -transform.localPosition.x / Mathf.Sqrt(3f) + TriangleCenter.z && transform.localPosition.x > 0f) return TriangleDirection.Edge240;
 
-            return TriangleDirection.Verticle;
+            return TriangleDirection.Corner;
         }
     }
     /// <summary>
@@ -151,7 +151,7 @@ public class HandTranslate : MonoBehaviour
             if (transform.localPosition.x > 0f && transform.localPosition.z > transform.localPosition.x * Mathf.Tan(18f * Mathf.Deg2Rad) + PentagonCenter.z) return PentagonDirection.Edge216;
             if (transform.localPosition.z < transform.localPosition.x * Mathf.Tan(18f * Mathf.Deg2Rad) + PentagonCenter.z && transform.localPosition.z > -transform.localPosition.x * Mathf.Tan(54f * Mathf.Deg2Rad) + PentagonCenter.z) return PentagonDirection.Edge288;
 
-            return PentagonDirection.Verticle;
+            return PentagonDirection.Corner;
         }
     }
     /// <summary>
@@ -322,13 +322,13 @@ public class HandTranslate : MonoBehaviour
 	void UpdateRealHand()
     {
 		realTrackerPos = new Vector3 (
-            target.transform.position.x * Mathf.Cos ((int)RotationManager.Instance.HMDDirection * Mathf.Deg2Rad) - target.transform.position.z * Mathf.Sin((int)RotationManager.Instance.HMDDirection * Mathf.Deg2Rad),
+            target.transform.position.x * Mathf.Cos ((float)WorldTranslate.Instance.HMDDirectionRough * Mathf.Deg2Rad) - target.transform.position.z * Mathf.Sin((float)WorldTranslate.Instance.HMDDirectionRough * Mathf.Deg2Rad),
             target.transform.position.y,
-            target.transform.position.x * Mathf.Sin ((int)RotationManager.Instance.HMDDirection * Mathf.Deg2Rad) + target.transform.position.z * Mathf.Cos((int)RotationManager.Instance.HMDDirection * Mathf.Deg2Rad)
+            target.transform.position.x * Mathf.Sin ((float)WorldTranslate.Instance.HMDDirectionRough * Mathf.Deg2Rad) + target.transform.position.z * Mathf.Cos((float)WorldTranslate.Instance.HMDDirectionRough * Mathf.Deg2Rad)
             );
 		realTrackerRot = new Vector3(
             target.transform.eulerAngles.x,
-            target.transform.eulerAngles.y - (int)RotationManager.Instance.HMDDirection,
+            target.transform.eulerAngles.y - (float)WorldTranslate.Instance.HMDDirectionRough,
             target.transform.eulerAngles.z
             );
 	}

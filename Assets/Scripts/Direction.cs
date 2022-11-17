@@ -8,10 +8,14 @@ using UnityEngine;
 public enum SquareDirection
 {
     Edge0 = 0,
+    Corner45 = 45,
     Edge90 = 90,
+    Corner135 = 135,
     Edge180 = 180,
+    Corner225 = 225,
     Edge270 = 270,
-    Verticle = 1000,
+    Corner315 = 315,
+    Other = 1000,
 }
 /// <summary>
 /// 三角形のテーブルの方角
@@ -21,7 +25,7 @@ public enum TriangleDirection
     Edge0 = 0,
     Edge120 = 120,
     Edge240 = 240,
-    Verticle = 1000,
+    Corner = 1000,
 }
 /// <summary>
 /// 五角形のテーブルの方角
@@ -33,5 +37,5 @@ public enum PentagonDirection
     Edge144 = 144,
     Edge216 = 216,
     Edge288 = 288,
-    Verticle = 1000,
+    Corner = 1000,
 }
