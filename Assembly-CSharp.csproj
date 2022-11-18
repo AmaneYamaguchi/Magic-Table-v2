@@ -61,6 +61,7 @@
     <Compile Include="Assets\Oculus\SampleFramework\Usage\SceneManager\Scripts\BouncingBallMgr.cs" />
     <Compile Include="Assets\Palace of Orinthalian\Standard Assets\Image Effects (Pro Only)\ImageEffects.cs" />
     <Compile Include="Assets\Scripts\ShapeControlButton.cs" />
+    <Compile Include="Assets\Scripts\WorldTranslate.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Usage\Passthrough\Scripts\PassthroughProjectionSurface.cs" />
     <Compile Include="Assets\Palace of Orinthalian\Standard Assets\Image Effects (Pro Only)\BlurEffect.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Usage\HandsTrainExample\Scripts\CowController.cs" />
@@ -154,7 +155,7 @@
     <Compile Include="Assets\Palace of Orinthalian\Standard Assets\Scripts\Utility Scripts\CombineChildren.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Core\DebugUI\Scripts\LaserPointer.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Core\Locomotion\Scripts\TeleportTransition.cs" />
-    <Compile Include="Assets\Scripts\HandTrackingController.cs" />
+    <Compile Include="Assets\Scripts\HandVisController.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Usage\HandsTrainExample\Scripts\SelectionCylinder.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Usage\HandsTrainExample\Scripts\PanelHMDFollower.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Usage\AppDeeplink\AppDeeplinkUI.cs" />
@@ -226,7 +227,6 @@
     <Compile Include="Assets\Oculus\SampleFramework\Usage\SpatialAnchor\Scripts\AnchorUIManager.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Usage\Passthrough\Scripts\SelectivePassthroughExperience.cs" />
     <Compile Include="Assets\Oculus\SampleFramework\Usage\HandsTrainExample\Scripts\TrackSegment.cs" />
-    <Compile Include="Assets\Scripts\WorldTranslate.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Assets\Palace of Orinthalian\Standard Assets\Image Effects (Pro Only)\_Sources\Shaders\Tonemapper.shader" />

@@ -51,12 +51,12 @@ public class TableManager : Singleton<TableManager> {
     {
         private set; get;
     } = false;
-
+    /*
     [SerializeField]
     private HandTranslate rightHand;
     [SerializeField]
     private HandTranslate leftHand;
-
+    */
     /// <summary>
     /// テーブルの形状
     /// </summary>
