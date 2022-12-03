@@ -118,8 +118,12 @@ public class WorldTranslate : Singleton<WorldTranslate>
     /// 1F前のHMDの方角
     /// </summary>
     private SquareDirection HMDDirectionBefore;
+    /// <summary>
+    /// HMDが1つ前にいた辺
+    /// </summary>
+    private SquareDirection HMDEdgeBefore;
     
-    private bool HMDIsInEdge
+    public bool HMDIsInEdge
     {
         get
         {
@@ -130,7 +134,7 @@ public class WorldTranslate : Singleton<WorldTranslate>
                 HMDDirection == SquareDirection.Edge270;
         }
     }
-    private bool HMDIsInCorner
+    public bool HMDIsInCorner
     {
         get
         {
@@ -141,7 +145,7 @@ public class WorldTranslate : Singleton<WorldTranslate>
                 HMDDirection == SquareDirection.Corner315;
         }
     }
-    private bool HMDWasInEdge
+    public bool HMDWasInEdge
     {
         get
         {
@@ -152,7 +156,7 @@ public class WorldTranslate : Singleton<WorldTranslate>
                 HMDDirectionBefore == SquareDirection.Edge270;
         }
     }
-    private bool HMDWasInCorner
+    public bool HMDWasInCorner
     {
         get
         {
@@ -163,12 +167,23 @@ public class WorldTranslate : Singleton<WorldTranslate>
                 HMDDirectionBefore == SquareDirection.Corner315;
         }
     }
-    private bool HMDIsInsideTable
+    public bool HMDIsInsideTable
     {
         get
         {
             return Mathf.Abs(HMD.position.x) < TableManager.Instance.TableWidth / 2f
                 && Mathf.Abs(HMD.position.z) < TableManager.Instance.TableWidth / 2f;
+        }
+    }
+
+    /// <summary>
+    /// HMDに回転ゲインがかかっているかどうか
+    /// </summary>
+    private bool HMDIsRotating
+    {
+        get
+        {
+            return currentCorner != null;
         }
     }
 
@@ -189,13 +204,17 @@ public class WorldTranslate : Singleton<WorldTranslate>
         set; get;
     }
     /// <summary>
-    /// 1F前のHMDの位置
+    /// 角に入った時のHMDの位置
     /// 角内での変化角度を測るために使用
     /// </summary>
     private Vector3 HMDPositionOnEnteringCorner = Vector3.zero;
     /// <summary>
+    /// 角に入った時のHMDの角度 y座標を回転のゲインに反映させる
+    /// </summary>
+    private Vector3 HMDRotationOnEnteringCorner = Vector3.zero;
+    /// <summary>
     /// HMDが角にいる時入ってからのHMDの角度変化
-    /// 符号付き -90～90
+    /// 符号付き -180~180
     /// </summary>
     private float diffAngleInCorner
     {
@@ -206,7 +225,7 @@ public class WorldTranslate : Singleton<WorldTranslate>
                 Debug.LogWarning("WorldTranslate: currentCorner is not set!");
                 return 0f;
             }
-
+            /* // 曲率
             Vector3 from, to;
 
             // 変数設定
@@ -218,8 +237,22 @@ public class WorldTranslate : Singleton<WorldTranslate>
             to.y = 0f;
 
             return GainInsideTable * Vector3.SignedAngle(from, to, Vector3.up);
+            */
+
+            // 回転
+            float currentY = HMD.rotation.eulerAngles.y;
+            float diffY = currentY - HMDRotationOnEnteringCorner.y;
+
+            // -90～90を取るよう補正
+            if (180f < diffY) diffY -= 360f;
+
+            return diffY;
         }
     }
+    /// <summary>
+    /// 1F前のdiffAngleInCorner
+    /// </summary>
+    private float diffAngleInCornerBefore = 0f;
     /// <summary>
     /// 環境が変化すべき角度
     /// </summary>
@@ -245,9 +278,9 @@ public class WorldTranslate : Singleton<WorldTranslate>
 
     private void Update()
     {
-        // 三角形または五角形の場合は
         // HMDがリアルテーブルの角（90°）に入った時に環境を角の子にする
-        if (HMDWasInEdge && HMDIsInCorner)
+        // もう回転中の場合は無効にしたいが，初期でHMDが回転中っぽいのでどうしよう
+        if (HMDWasInEdge && HMDIsInCorner && !HMDIsRotating)
         {
             switch (HMDDirection)
             {
@@ -269,20 +302,37 @@ public class WorldTranslate : Singleton<WorldTranslate>
             }
             Environment.parent = currentCorner;
             HMDPositionOnEnteringCorner = HMD.position;
+            HMDRotationOnEnteringCorner = HMD.rotation.eulerAngles;
+
+            // -180~180を取るように補正
+            if (180f < HMDRotationOnEnteringCorner.y) HMDRotationOnEnteringCorner.y -= 360f;
+
             environmentAngleOnEnteringCorner = currentCorner.eulerAngles.y;
+            HMDEdgeBefore = HMDDirectionBefore;
         }
 
-        // HMDのリアル位置に対し，角の角度をイイ感じに足す
-        if (HMDWasInCorner)
+        // HMDのリアル位置に対し，角の角度をイイ感じに足す // 位置ではなく角度変化だった
+        if (HMDIsRotating)
         {
             currentCorner.eulerAngles = new Vector3(0f, environmentAngleOnEnteringCorner - redirectedDiffAngleInCorner, 0f);
         }
 
-        // HMDが角から出たら，環境をルートの子に戻す
-        if (HMDWasInCorner && HMDIsInEdge)
+        // HMDが角から出て，かつHMDの回転差分が所定の角度なら，環境をルートの子に戻す
+        //if (HMDWasInCorner && HMDIsInEdge)
+        if (HMDIsInEdge && HMDIsRotating)
         {
-            // 回転角度を-90°，0°，90°のどれかに丸める
             var diff = diffAngleInCorner;
+
+            // 所定の角度：元々いた辺→0，右→-90，左→90
+            float targetDiffAngle = HMDDirection - HMDEdgeBefore;
+            if (180f < targetDiffAngle) targetDiffAngle -= 360f;
+            if (targetDiffAngle < -180) targetDiffAngle += 360f;
+            //if (Mathf.Round(diff - targetDiffAngle) != 0f) return; // 精度悪い 1F前のと比較すべき
+            if ((diff - targetDiffAngle) * (diffAngleInCornerBefore - targetDiffAngle) > 0f) return;
+
+            //Debug.Log($"90 degree!");
+
+            // 回転角度を-90°，0°，90°のどれかに丸める
             diff = (diff <= -45) ? -90f : (diff < 45f) ? 0f : 90f;
             
             var angle = (TableManager.Instance.Gain - 1f) * diff;
@@ -296,6 +346,7 @@ public class WorldTranslate : Singleton<WorldTranslate>
     private void LateUpdate()
     {
         HMDDirectionBefore = HMDDirection;
+        diffAngleInCornerBefore = diffAngleInCorner;
     }
 
     /// <summary>
@@ -320,5 +371,13 @@ public class WorldTranslate : Singleton<WorldTranslate>
         float angle = Vector3.Angle(from, to);
 
         return angle <= halfThresholdAngle;
+    }
+    /// <summary>
+    /// 回転中心となる角を変更する
+    /// </summary>
+    /// <param name="dir"></param>
+    public void ResetCurrentCorner(Transform corner = null)
+    {
+        currentCorner = corner;
     }
 }

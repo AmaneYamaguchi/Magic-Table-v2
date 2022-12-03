@@ -80,6 +80,9 @@ public class TableManager : Singleton<TableManager> {
             // 同じなら何もしない
             if (value == _currentShape) return;
 
+            // 現在HMDが角にいる場合は何もしない（できない）
+            if (WorldTranslate.Instance.HMDIsInCorner) return;
+
             _currentShape = value;
 
             // 実際にテーブルの形状を変更する
@@ -90,6 +93,9 @@ public class TableManager : Singleton<TableManager> {
             //rightHand.ResetVirtualHandDirection(value);
             //leftHand.ResetRealHandDirection();
             //leftHand.ResetVirtualHandDirection(value);
+
+            // 世界をルートの子にする
+            WorldTranslate.Instance.ResetCurrentCorner();
         }
         get
         {

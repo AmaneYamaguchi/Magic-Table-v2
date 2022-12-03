@@ -5,9 +5,6 @@ EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
   m_Scenes:
-  - enabled: 0
-    path: Assets/Scene/theLab.unity
-    guid: 84c9183cee46e994ebdebc1ca2a45b00
   - enabled: 1
     path: Assets/Scene/Demo 2022.unity
     guid: 5a2e2865743cbc24ab3aba0a74377c3d
@@ -15,4 +12,6 @@ EditorBuildSettings:
     Unity.XR.Oculus.Settings: {fileID: 11400000, guid: 59d00ef0959623a458e97542686f7416,
       type: 2}
     com.unity.xr.management.loader_settings: {fileID: 11400000, guid: f1dcfbcb16be1294fb4fec042d934956,
+      type: 2}
+    com.unity.xr.openxr.settings4: {fileID: 11400000, guid: 18c025cbb37ab8f4fa8defd503655ec0,
       type: 2}
