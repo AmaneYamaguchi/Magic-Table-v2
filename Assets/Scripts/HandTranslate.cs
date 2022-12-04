@@ -228,7 +228,7 @@ public class HandTranslate : MonoBehaviour
             ResetVirtualHand();
         }
         //手の位置がおかしくなったときはenter
-        if (Input.GetKeyDown (KeyCode.Return))
+        if (Input.GetKeyDown(KeyCode.Return))
         {
             ResetVirtualHand();
 		}

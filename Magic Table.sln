@@ -17,9 +17,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oculus.VR", "Oculus.VR.cspr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oculus.Interaction.Samples", "Oculus.Interaction.Samples.csproj", "{9143CED0-B4C1-31B6-0789-30D06655F457}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceSDK.Dictation.Runtime", "VoiceSDK.Dictation.Runtime.csproj", "{E35DC75A-3C2E-0235-8025-7E145BA5C40D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Facebook.Wit.TTS", "Facebook.Wit.TTS.csproj", "{64ED02F9-D81E-6B7D-C5F3-FABED041229D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VoiceSDK.Dictation.Runtime", "VoiceSDK.Dictation.Runtime.csproj", "{E35DC75A-3C2E-0235-8025-7E145BA5C40D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Oculus.AudioManager", "Oculus.AudioManager.csproj", "{F219364D-D777-FC6B-BE9B-E4C4623DF72F}"
 EndProject
@@ -109,14 +109,14 @@ Global
 		{9143CED0-B4C1-31B6-0789-30D06655F457}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9143CED0-B4C1-31B6-0789-30D06655F457}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{9143CED0-B4C1-31B6-0789-30D06655F457}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E35DC75A-3C2E-0235-8025-7E145BA5C40D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E35DC75A-3C2E-0235-8025-7E145BA5C40D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E35DC75A-3C2E-0235-8025-7E145BA5C40D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E35DC75A-3C2E-0235-8025-7E145BA5C40D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{64ED02F9-D81E-6B7D-C5F3-FABED041229D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{64ED02F9-D81E-6B7D-C5F3-FABED041229D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{64ED02F9-D81E-6B7D-C5F3-FABED041229D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{64ED02F9-D81E-6B7D-C5F3-FABED041229D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E35DC75A-3C2E-0235-8025-7E145BA5C40D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E35DC75A-3C2E-0235-8025-7E145BA5C40D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E35DC75A-3C2E-0235-8025-7E145BA5C40D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E35DC75A-3C2E-0235-8025-7E145BA5C40D}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F219364D-D777-FC6B-BE9B-E4C4623DF72F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F219364D-D777-FC6B-BE9B-E4C4623DF72F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F219364D-D777-FC6B-BE9B-E4C4623DF72F}.Release|Any CPU.ActiveCfg = Debug|Any CPU
@@ -230,6 +230,6 @@ Global
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {C831410C-893D-4517-8D6D-EC3752B5D454}
+		SolutionGuid = {88AA7B32-E81D-4E77-9EE9-2C76BEFD7A1A}
 	EndGlobalSection
 EndGlobal
